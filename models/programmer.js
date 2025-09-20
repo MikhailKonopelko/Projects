@@ -1,5 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class Programmer extends Model {
     static associate(models) {
@@ -9,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+
   Programmer.init({
     projectId: DataTypes.INTEGER,
     firstName: DataTypes.STRING,
@@ -23,7 +25,28 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Programmer',
     tableName: 'Programmers',
-    freezeTableName: true
+    freezeTableName: true,
+    validate: {
+      validDates() {
+        if (this.startDate >= this.endDate) {
+          throw new Error('Дата окончания должна быть позже даты начала');
+        }
+      }
+    }
   });
+
+  Programmer.addHook('beforeCreate', async (dev, options) => {
+    const project = await sequelize.models.Project.findByPk(dev.projectId);
+    if (!project) throw new Error('Проект не найден');
+
+    if (dev.startDate < project.startDate) {
+      throw new Error('Дата начала работы программиста не может быть раньше начала проекта');
+    }
+
+    if (dev.endDate > project.endDate) {
+      throw new Error('Дата окончания работы программиста не может быть позже окончания проекта');
+    }
+  });
+
   return Programmer;
 };
