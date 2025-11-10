@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Projects MVC App</title>
+	<style>
+		body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+		section { margin-bottom: 24px; }
+		input, button { padding: 8px; margin: 4px 0; }
+		pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow: auto; }
+	</style>
+</head>
+<body>
+	<h1>Projects MVC App</h1>
+
+	<section>
+		<h2>Auth</h2>
+		<div>
+			<input id="email" placeholder="email" />
+		</div>
+		<div>
+			<input id="password" type="password" placeholder="password" />
+		</div>
+		<div>
+			<button id="registerBtn">Register</button>
+			<button id="loginBtn">Login</button>
+			<button id="refreshBtn">Refresh Token</button>
+			<button id="logoutBtn">Logout</button>
+		</div>
+		<div>
+			<label>Access Token</label>
+			<pre id="accessTokenView"></pre>
+		</div>
+	</section>
+
+	<section>
+		<h2>Projects</h2>
+		<div>
+			<button id="loadProjectsBtn">Load Projects</button>
+		</div>
+		<pre id="projectsView"></pre>
+	</section>
+
+	<script src="./app.js"></script>
+</body>
+</html>
+
+
