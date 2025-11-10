@@ -4,6 +4,12 @@
     "password": "pmt35084",
     "database": "software_company",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "pool": {
+      "max": 10,
+      "min": 2,
+      "acquire": 30000,
+      "idle": 10000
+    }
   }
 }

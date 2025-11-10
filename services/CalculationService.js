@@ -12,6 +12,9 @@ class CalculationService {
       throw new Error('programmerRepository is required');
     }
     this.programmerRepository = programmerRepository;
+
+    this._withTransaction = null;
+    this._IdentityMap = null;
   }
 
   /**
@@ -20,7 +23,14 @@ class CalculationService {
    * @returns {Promise<number>} Promise resolving to the total project cost
    */
   async calculateProjectCost(projectId) {
-    const programmers = await this.programmerRepository.findByProjectId(projectId);
+    const sequelize = this.programmerRepository.Programmer.sequelize;
+    const { withTransaction } = this._getTxHelper();
+    const IdentityMap = this._getIdentityMap();
+
+    const programmers = await withTransaction(sequelize, async ({ transaction }) => {
+      const identityMap = new IdentityMap();
+      return await this.programmerRepository.findByProjectId(projectId, { transaction, identityMap });
+    });
 
     let totalCost = 0;
     for (const dev of programmers) {
@@ -57,12 +67,33 @@ class CalculationService {
    * @returns {Promise<number>} Promise resolving to the total project value
    */
   async calculateProjectValue(projectId) {
-    const programmers = await this.programmerRepository.findByProjectId(projectId);
+    const sequelize = this.programmerRepository.Programmer.sequelize;
+    const { withTransaction } = this._getTxHelper();
+    const IdentityMap = this._getIdentityMap();
+
+    const programmers = await withTransaction(sequelize, async ({ transaction }) => {
+      const identityMap = new IdentityMap();
+      return await this.programmerRepository.findByProjectId(projectId, { transaction, identityMap });
+    });
     let total = 0;
     for (const dev of programmers) {
       total += this.calculateSalary(dev);
     }
     return total * 2;
+  }
+
+  _getTxHelper() {
+    if (!this._withTransaction) {
+      this._withTransaction = require('../utils/withTransaction').withTransaction;
+    }
+    return { withTransaction: this._withTransaction };
+  }
+
+  _getIdentityMap() {
+    if (!this._IdentityMap) {
+      this._IdentityMap = require('../utils/IdentityMap');
+    }
+    return this._IdentityMap;
   }
 }
 
