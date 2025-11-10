@@ -3,44 +3,195 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<title>Projects MVC App</title>
+	<title>Software Company Manager</title>
 	<style>
-		body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
-		section { margin-bottom: 24px; }
-		input, button { padding: 8px; margin: 4px 0; }
-		pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow: auto; }
+		:root {
+			--bg: #0b1020;
+			--panel: #121933;
+			--accent: #6ea8fe;
+			--text: #e6e9f2;
+			--muted: #a7b0c0;
+			--danger: #ff6b6b;
+			--success: #51cf66;
+			--border: #253055;
+		}
+		* { box-sizing: border-box; }
+		body { font-family: system-ui, Segoe UI, Arial, sans-serif; margin: 0; background: linear-gradient(180deg, #0b1020, #101735 60%, #0b1020); color: var(--text); }
+		header { padding: 20px 24px; border-bottom: 1px solid var(--border); background: rgba(10, 16, 36, 0.6); position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 5; }
+		header h1 { margin: 0; font-size: 18px; letter-spacing: .3px; color: var(--accent); }
+		main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+		.grid { display: grid; gap: 16px; }
+		.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.section { background: linear-gradient(180deg, rgba(18,25,51,.9), rgba(18,25,51,.7)); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+		.section h2 { margin: 0 0 12px 0; font-size: 16px; color: var(--text); }
+		.row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: center; }
+		label { color: var(--muted); font-size: 13px; }
+		input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #0e1430; color: var(--text); outline: none; }
+		input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,.15); }
+		.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+		button { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: #18224a; color: var(--text); cursor: pointer; }
+		button.primary { background: linear-gradient(180deg, #2447b5, #1c358d); border-color: #2841a8; }
+		button.secondary { background: #152048; }
+		button:disabled { opacity: .6; cursor: not-allowed; }
+		.token { background: #0e1430; border: 1px dashed var(--border); padding: 10px; border-radius: 8px; word-break: break-all; color: var(--muted); }
+		.kpi { display: flex; gap: 12px; flex-wrap: wrap; }
+		.kpi .card { flex: 1; min-width: 220px; background: #0e1430; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+		.kpi .card h3 { margin: 0 0 6px 0; font-size: 13px; color: var(--muted); font-weight: 500; }
+		.kpi .card .val { font-size: 18px; color: var(--text); }
+		.project { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #10183a, #0e1533); }
+		.project h3 { margin: 0 0 8px 0; color: var(--text); }
+		.meta { color: var(--muted); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
+		.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: #0e1430; border: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+		hr.sep { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+		.small { font-size: 12px; color: var(--muted); }
+		.error { color: var(--danger); }
+		.success { color: var(--success); }
+		.list { display: grid; gap: 12px; margin-top: 8px; }
 	</style>
 </head>
 <body>
-	<h1>Projects MVC App</h1>
+	<header>
+		<h1>Software Company Manager</h1>
+	</header>
+	<main class="grid">
+		<section class="section">
+			<h2>Authentication</h2>
+			<div id="userStatus" style="padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid var(--border); background: #0e1430;">
+				<strong>Status:</strong> <span id="userStatusText">Checking...</span>
+			</div>
+			<div class="grid cols-2">
+				<div class="grid">
+					<div class="row">
+						<label for="email">Email</label>
+						<input id="email" placeholder="email" />
+					</div>
+					<div class="row">
+						<label for="password">Password</label>
+						<input id="password" type="password" placeholder="password" />
+					</div>
+					<div class="actions">
+						<button id="registerBtn" class="secondary">Register</button>
+						<button id="loginBtn" class="primary">Login</button>
+						<button id="refreshBtn" class="secondary">Refresh Token</button>
+						<button id="logoutBtn" class="secondary">Logout</button>
+					</div>
+				</div>
+				<div class="grid">
+					<label>Access Token</label>
+					<div id="accessTokenView" class="token"></div>
+				</div>
+			</div>
+		</section>
 
-	<section>
-		<h2>Auth</h2>
-		<div>
-			<input id="email" placeholder="email" />
-		</div>
-		<div>
-			<input id="password" type="password" placeholder="password" />
-		</div>
-		<div>
-			<button id="registerBtn">Register</button>
-			<button id="loginBtn">Login</button>
-			<button id="refreshBtn">Refresh Token</button>
-			<button id="logoutBtn">Logout</button>
-		</div>
-		<div>
-			<label>Access Token</label>
-			<pre id="accessTokenView"></pre>
-		</div>
-	</section>
+		<section class="section">
+			<h2>Create Project</h2>
+			<div class="grid cols-2">
+				<div class="grid">
+					<div class="row">
+						<label for="pName">Project name</label>
+						<input id="pName" placeholder="e.g. CRM Platform" />
+					</div>
+					<div class="row">
+						<label for="pClient">Customer</label>
+						<input id="pClient" placeholder="e.g. Acme Inc." />
+					</div>
+				</div>
+				<div class="grid">
+					<div class="row">
+						<label for="pStart">Start date</label>
+						<input id="pStart" type="date" />
+					</div>
+					<div class="row">
+						<label for="pEnd">End date</label>
+						<input id="pEnd" type="date" />
+					</div>
+				</div>
+			</div>
+			<div class="actions">
+				<button id="createProjectBtn" class="primary">Create Project</button>
+				<span id="projectFormMsg" class="small"></span>
+			</div>
+		</section>
 
-	<section>
-		<h2>Projects</h2>
-		<div>
-			<button id="loadProjectsBtn">Load Projects</button>
-		</div>
-		<pre id="projectsView"></pre>
-	</section>
+		<section class="section">
+			<h2>Create Programmer</h2>
+			<div class="grid cols-2">
+				<div class="grid">
+					<div class="row">
+						<label for="prProject">Project</label>
+						<select id="prProject"></select>
+					</div>
+					<div class="row">
+						<label for="prFirst">First name</label>
+						<input id="prFirst" placeholder="e.g. Jane" />
+					</div>
+					<div class="row">
+						<label for="prLast">Last name</label>
+						<input id="prLast" placeholder="e.g. Doe" />
+					</div>
+					<div class="row">
+						<label for="prMiddle">Patronymic</label>
+						<input id="prMiddle" placeholder="e.g. M" />
+					</div>
+					<div class="row">
+						<label for="prPos">Position</label>
+						<input id="prPos" placeholder="e.g. Backend Dev" />
+					</div>
+				</div>
+				<div class="grid">
+					<div class="row">
+						<label for="prStart">Work start</label>
+						<input id="prStart" type="date" />
+					</div>
+					<div class="row">
+						<label for="prEnd">Work end</label>
+						<input id="prEnd" type="date" />
+					</div>
+					<div class="row">
+						<label for="prRate">Hourly rate</label>
+						<input id="prRate" type="number" step="0.01" placeholder="e.g. 50" />
+					</div>
+					<div class="row">
+						<label for="prFull">Full-time</label>
+						<select id="prFull">
+							<option value="true">Yes</option>
+							<option value="false">No (part-time)</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="actions">
+				<button id="createProgrammerBtn" class="primary">Add Programmer</button>
+				<span id="programmerFormMsg" class="small"></span>
+			</div>
+		</section>
+
+		<section class="section">
+			<h2>Projects</h2>
+			<div class="actions" style="margin-bottom:8px;">
+				<button id="loadProjectsBtn" class="secondary">Reload</button>
+			</div>
+			<div class="kpi" id="kpiBar" style="display:none;">
+				<div class="card">
+					<h3>Total Projects</h3>
+					<div class="val" id="kpiProjects">0</div>
+				</div>
+				<div class="card">
+					<h3>Total Programmers</h3>
+					<div class="val" id="kpiProgrammers">0</div>
+				</div>
+				<div class="card">
+					<h3>Total Salaries</h3>
+					<div class="val" id="kpiSalaries">$0</div>
+				</div>
+				<div class="card">
+					<h3>Total Project Value</h3>
+					<div class="val" id="kpiValue">$0</div>
+				</div>
+			</div>
+			<div id="projectsView" class="list"></div>
+		</section>
+	</main>
 
 	<script src="./app.js"></script>
 </body>

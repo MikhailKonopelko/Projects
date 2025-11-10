@@ -16,11 +16,12 @@ module.exports = function createFrontController() {
 	const project = createProjectCommands();
 	const programmer = createProgrammerCommands();
 
-	// Auth routes (no auth required)
+	// Auth routes
 	router.post('/auth/register', auth.register);
 	router.post('/auth/login', auth.login);
 	router.post('/auth/refresh', auth.refresh);
-	router.post('/auth/logout', auth.logout);
+	router.post('/auth/logout', auth.logout); // No auth required - should work even with expired tokens
+	router.get('/auth/me', verifyAccessToken, auth.me);
 
 	// Projects CRUD
 	router.get('/projects', verifyAccessToken, project.list);

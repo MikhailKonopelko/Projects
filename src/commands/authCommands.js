@@ -77,15 +77,44 @@ module.exports = function createAuthCommands() {
 
 		logout: async (req, res) => {
 			try {
-				const userId = req.user?.id || null;
+				// Try to get user from access token if available
+				let userId = req.user?.id || null;
+				
+				// If no user from access token, try to get from refresh token
+				if (!userId) {
+					const { refreshToken: tokenFromBody } = req.body || {};
+					const token = tokenFromBody || req.cookies?.refreshToken;
+					if (token) {
+						try {
+							const payload = verifyRefreshToken(token);
+							userId = payload.sub;
+						} catch (e) {
+							// Refresh token is invalid/expired, ignore
+						}
+					}
+				}
+				
+				// Clear refresh token from database if we have a user ID
 				if (userId) {
 					await User.update({ refreshTokenHash: null }, { where: { id: userId } });
 				}
 			} catch (e) {
-				// ignore
+				// ignore errors, still clear cookies
 			} finally {
 				clearAuthCookies(res);
 				return res.status(200).json({ message: 'Logged out' });
+			}
+		},
+
+		me: async (req, res) => {
+			try {
+				if (!req.user) {
+					return res.status(401).json({ message: 'Not authenticated' });
+				}
+				return res.json({ id: req.user.id, email: req.user.email });
+			} catch (err) {
+				console.error(err);
+				return res.status(500).json({ message: 'Failed to get user info' });
 			}
 		}
 	};
