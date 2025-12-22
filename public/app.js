@@ -7,6 +7,13 @@ const userStatus = document.getElementById('userStatus');
 const emailEl = document.getElementById('email');
 const passwordEl = document.getElementById('password');
 
+// Modal elements
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
+const modalCancel = document.getElementById('modalCancel');
+const modalConfirm = document.getElementById('modalConfirm');
+
 // Project form elements
 const pNameEl = document.getElementById('pName');
 const pClientEl = document.getElementById('pClient');
@@ -101,7 +108,38 @@ function renderAccessToken() {
 }
 
 function updateUserStatus() {
-	userStatusText.textContent = currentUser ? `Logged in as: ${currentUser.email}` : 'Not logged in';
+	if (currentUser) {
+		const roleLabel = currentUser.role === 'admin' ? 'Admin' : currentUser.role === 'manager' ? 'Manager' : 'User';
+		userStatusText.textContent = `Logged in as: ${currentUser.email} (${roleLabel})`;
+	} else {
+		userStatusText.textContent = 'Not logged in';
+	}
+	updateUIForRole();
+}
+
+function updateUIForRole() {
+	const isManagerOrAdmin = currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin');
+	const isAdmin = currentUser && currentUser.role === 'admin';
+	
+	// Show/hide create forms based on role
+	const createProjectSection = document.getElementById('createProjectSection');
+	const createProgrammerSection = document.getElementById('createProgrammerSection');
+	const userManagementSection = document.getElementById('userManagementSection');
+	
+	if (createProjectSection) {
+		createProjectSection.style.display = isManagerOrAdmin ? 'block' : 'none';
+	}
+	if (createProgrammerSection) {
+		createProgrammerSection.style.display = isManagerOrAdmin ? 'block' : 'none';
+	}
+	if (userManagementSection) {
+		userManagementSection.style.display = isAdmin ? 'block' : 'none';
+	}
+	
+	// Re-render projects to update delete buttons visibility
+	if (cache.projects && cache.programmers) {
+		renderProjects(cache.projects, cache.programmers);
+	}
 }
 
 function formatMoney(num) {
@@ -114,6 +152,85 @@ function escapeHtml(text) {
 	const div = document.createElement('div');
 	div.textContent = text;
 	return div.innerHTML;
+}
+
+// Modal confirmation function
+let modalResolve = null;
+let modalHandlers = [];
+
+function showModal(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+	return new Promise((resolve) => {
+		// If there's a pending modal, resolve it first
+		if (modalResolve) {
+			modalResolve(false);
+		}
+		
+		modalResolve = resolve;
+		
+		// Clear previous handlers
+		modalHandlers.forEach(({ element, event, handler }) => {
+			element.removeEventListener(event, handler);
+		});
+		modalHandlers = [];
+		
+		modalTitle.textContent = title;
+		modalMessage.textContent = message;
+		modalConfirm.textContent = confirmText;
+		modalCancel.textContent = cancelText;
+		
+		// Show cancel button only if cancelText is provided
+		if (cancelText) {
+			modalCancel.style.display = '';
+		} else {
+			modalCancel.style.display = 'none';
+		}
+		
+		// Show modal
+		modalOverlay.classList.add('active');
+		
+		// Add event handlers
+		const confirmHandler = () => {
+			modalOverlay.classList.remove('active');
+			if (modalResolve) {
+				modalResolve(true);
+				modalResolve = null;
+			}
+		};
+		
+		const cancelHandler = () => {
+			modalOverlay.classList.remove('active');
+			if (modalResolve) {
+				modalResolve(false);
+				modalResolve = null;
+			}
+		};
+		
+		const overlayClick = (e) => {
+			if (e.target === modalOverlay && cancelText) {
+				cancelHandler();
+			}
+		};
+		
+		const escapeKey = (e) => {
+			if (e.key === 'Escape' && cancelText) {
+				cancelHandler();
+			}
+		};
+		
+		modalConfirm.addEventListener('click', confirmHandler);
+		if (cancelText) {
+			modalCancel.addEventListener('click', cancelHandler);
+			modalOverlay.addEventListener('click', overlayClick);
+			document.addEventListener('keydown', escapeKey);
+			
+			modalHandlers.push(
+				{ element: modalCancel, event: 'click', handler: cancelHandler },
+				{ element: modalOverlay, event: 'click', handler: overlayClick },
+				{ element: document, event: 'keydown', handler: escapeKey }
+			);
+		}
+		modalHandlers.push({ element: modalConfirm, event: 'click', handler: confirmHandler });
+	});
 }
 
 // Business-calculation helpers (client-side mirror)
@@ -173,30 +290,37 @@ function renderProjects(projects, programmers) {
 		return;
 	}
 
+	const isManagerOrAdmin = currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin');
+
 	const cards = projects.map(project => {
 		const m = computeProjectMetrics(project, programmers);
 		const start = project.startDate ? new Date(project.startDate).toLocaleDateString() : '—';
 		const end = project.endDate ? new Date(project.endDate).toLocaleDateString() : '—';
 		const teamHtml = m.team.map(dev => {
 			const sal = computeSalary(dev);
+		const deleteBtn = isManagerOrAdmin 
+			? `<button title="Delete programmer" class="secondary btn-del-prog danger" data-id="${dev.id}">✕</button>`
+			: '';
 			return `
 				<div class="badge" data-prog-id="${dev.id}">
 					<span>${escapeHtml(dev.lastName || '')} ${escapeHtml(dev.firstName || '')}</span>
 					<span class="small">(${escapeHtml(dev.position || 'Dev')})</span>
 					<span class="small">• ${dev.fullTime ? 'FT' : 'PT'}</span>
 					<span class="small">• ${formatMoney(sal)}</span>
-					<button title="Delete programmer" class="secondary btn-del-prog" data-id="${dev.id}" style="padding:2px 6px; margin-left:6px;">✕</button>
+					${deleteBtn}
 				</div>
 			`;
 		}).join(' ');
+
+		const deleteProjectBtn = isManagerOrAdmin 
+			? `<button class="secondary btn-del-project danger" data-id="${project.id}" title="Delete project">Delete</button>`
+			: '';
 
 		return `
 			<div class="project" data-project-id="${project.id}">
 				<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
 					<h3 style="margin:0;">${escapeHtml(project.name || 'Unnamed Project')}</h3>
-					<div class="actions">
-						<button class="secondary btn-del-project" data-id="${project.id}" title="Delete project">Delete</button>
-					</div>
+					${deleteProjectBtn ? `<div class="actions">${deleteProjectBtn}</div>` : ''}
 				</div>
 				<div class="meta">
 					<span class="badge">Client: ${escapeHtml(project.client || 'N/A')}</span>
@@ -321,6 +445,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 		// Get user info after login
 		await checkAuthStatus();
 		await reloadAll();
+		if (currentUser && currentUser.role === 'admin') {
+			await loadUsers();
+		}
 	} catch (e) {
 		userStatusText.textContent = 'Login failed: ' + e.message;
 	}
@@ -472,14 +599,27 @@ projectsView.addEventListener('click', async (e) => {
 	if (target.classList.contains('btn-del-project')) {
 		const id = Number(target.getAttribute('data-id'));
 		if (!id) return;
-		const confirmMsg = 'Delete this project? All its programmers must be removed or will fail if FK constraints exist.';
-		if (!confirm(confirmMsg)) return;
+		
+		// Find project name for better confirmation message
+		const project = cache.projects?.find(p => p.id === id);
+		const projectName = project?.name || 'this project';
+		const confirmMsg = `Are you sure you want to delete "${projectName}"? All programmers assigned to this project will also be removed.`;
+		
+		const confirmed = await showModal(
+			'Delete Project',
+			confirmMsg,
+			'Delete',
+			'Cancel'
+		);
+		
+		if (!confirmed) return;
+		
 		try {
 			target.disabled = true;
 			await api(`/projects/${id}`, { method: 'DELETE' });
 			await reloadAll();
 		} catch (err) {
-			alert('Delete project failed: ' + err.message);
+			await showModal('Error', 'Delete project failed: ' + err.message, 'OK', '');
 		} finally {
 			target.disabled = false;
 		}
@@ -490,13 +630,28 @@ projectsView.addEventListener('click', async (e) => {
 	if (target.classList.contains('btn-del-prog')) {
 		const id = Number(target.getAttribute('data-id'));
 		if (!id) return;
-		if (!confirm('Delete this programmer?')) return;
+		
+		// Find programmer info for better confirmation message
+		const programmer = cache.programmers?.find(p => p.id === id);
+		const programmerName = programmer 
+			? `${programmer.firstName || ''} ${programmer.lastName || ''}`.trim() || 'this programmer'
+			: 'this programmer';
+		
+		const confirmed = await showModal(
+			'Delete Programmer',
+			`Are you sure you want to delete "${programmerName}"? This action cannot be undone.`,
+			'Delete',
+			'Cancel'
+		);
+		
+		if (!confirmed) return;
+		
 		try {
 			target.disabled = true;
 			await api(`/programmers/${id}`, { method: 'DELETE' });
 			await reloadAll();
 		} catch (err) {
-			alert('Delete programmer failed: ' + err.message);
+			await showModal('Error', 'Delete programmer failed: ' + err.message, 'OK', '');
 		} finally {
 			target.disabled = false;
 		}
@@ -504,6 +659,144 @@ projectsView.addEventListener('click', async (e) => {
 	}
 });
 
+// User management functions (Admin only)
+function renderUsers(users) {
+	const usersView = document.getElementById('usersView');
+	if (!usersView) return;
+	
+	if (!users || users.length === 0) {
+		usersView.innerHTML = '<p class="small">No users found.</p>';
+		return;
+	}
+
+	const cards = users.map(user => {
+		const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'manager' ? 'Manager' : 'User';
+		const roleColor = user.role === 'admin' ? '#ff6b6b' : user.role === 'manager' ? '#6ea8fe' : '#51cf66';
+		const canDelete = user.role === 'user' && user.id !== currentUser?.id;
+		const deleteBtn = canDelete 
+			? `<button class="secondary btn-del-user danger" data-id="${user.id}" title="Delete user">Delete</button>`
+			: '<span class="small" style="color:var(--muted);">Cannot delete</span>';
+		
+		return `
+			<div class="project" data-user-id="${user.id}">
+				<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+					<div>
+						<h3 style="margin:0;">${escapeHtml(user.email || 'Unknown')}</h3>
+						<div class="meta">
+							<span class="badge" style="border-color:${roleColor}; color:${roleColor};">${roleLabel}</span>
+							<span class="small">ID: ${user.id}</span>
+						</div>
+					</div>
+					<div class="actions">
+						${deleteBtn}
+					</div>
+				</div>
+			</div>
+		`;
+	}).join('');
+
+	usersView.innerHTML = cards;
+}
+
+async function loadUsers() {
+	try {
+		const users = await api('/users', { method: 'GET' });
+		renderUsers(Array.isArray(users) ? users : [users]);
+	} catch (e) {
+		const usersView = document.getElementById('usersView');
+		if (usersView) {
+			usersView.innerHTML = `<p class="error">Error loading users: ${escapeHtml(e.message)}</p>`;
+		}
+	}
+}
+
+// User management event handlers
+const uEmailEl = document.getElementById('uEmail');
+const uPasswordEl = document.getElementById('uPassword');
+const createUserBtn = document.getElementById('createUserBtn');
+const loadUsersBtn = document.getElementById('loadUsersBtn');
+const userFormMsg = document.getElementById('userFormMsg');
+
+if (createUserBtn) {
+	createUserBtn.addEventListener('click', async () => {
+		try {
+			userFormMsg.textContent = '';
+			const email = uEmailEl.value.trim();
+			const password = uPasswordEl.value;
+			if (!email || !password) {
+				userFormMsg.textContent = 'Please fill all fields.';
+				userFormMsg.className = 'small error';
+				return;
+			}
+			createUserBtn.disabled = true;
+			await api('/users', { method: 'POST', body: JSON.stringify({ email, password }) });
+			userFormMsg.textContent = 'User created.';
+			userFormMsg.className = 'small success';
+			uEmailEl.value = '';
+			uPasswordEl.value = '';
+			await loadUsers();
+		} catch (e) {
+			userFormMsg.textContent = 'Create failed: ' + e.message;
+			userFormMsg.className = 'small error';
+		} finally {
+			createUserBtn.disabled = false;
+		}
+	});
+}
+
+if (loadUsersBtn) {
+	loadUsersBtn.addEventListener('click', async () => {
+		try {
+			await loadUsers();
+		} catch (e) {
+			await showModal('Error', 'Load users failed: ' + e.message, 'OK', '');
+		}
+	});
+}
+
+// Event delegation for user deletion
+const usersView = document.getElementById('usersView');
+if (usersView) {
+	usersView.addEventListener('click', async (e) => {
+		const target = e.target;
+		if (!(target instanceof HTMLElement)) return;
+
+		if (target.classList.contains('btn-del-user')) {
+			const id = Number(target.getAttribute('data-id'));
+			if (!id) return;
+			
+			// Find user email for better confirmation message
+			const userCard = target.closest('[data-user-id]');
+			const userEmail = userCard?.querySelector('h3')?.textContent || 'this user';
+			
+			const confirmed = await showModal(
+				'Delete User',
+				`Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`,
+				'Delete',
+				'Cancel'
+			);
+			
+			if (!confirmed) return;
+			
+			try {
+				target.disabled = true;
+				await api(`/users/${id}`, { method: 'DELETE' });
+				await loadUsers();
+			} catch (err) {
+				await showModal('Error', 'Delete user failed: ' + err.message, 'OK', '');
+			} finally {
+				target.disabled = false;
+			}
+			return;
+		}
+	});
+}
+
 // Check auth status on page load
 renderAccessToken();
-checkAuthStatus().then(() => reloadAll()).catch(() => {});
+checkAuthStatus().then(() => {
+	reloadAll();
+	if (currentUser && currentUser.role === 'admin') {
+		loadUsers();
+	}
+}).catch(() => {});

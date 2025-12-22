@@ -18,8 +18,9 @@ module.exports = function createAuthCommands() {
 					return res.status(409).json({ message: 'User already exists' });
 				}
 				const passwordHash = await bcrypt.hash(password, 10);
-				const created = await User.create({ email, passwordHash });
-				return res.status(201).json({ id: created.id, email: created.email });
+				// Регистрация создает только обычных пользователей
+				const created = await User.create({ email, passwordHash, role: 'user' });
+				return res.status(201).json({ id: created.id, email: created.email, role: created.role });
 			} catch (err) {
 				console.error(err);
 				return res.status(500).json({ message: 'Registration failed' });
@@ -111,7 +112,7 @@ module.exports = function createAuthCommands() {
 				if (!req.user) {
 					return res.status(401).json({ message: 'Not authenticated' });
 				}
-				return res.json({ id: req.user.id, email: req.user.email });
+				return res.json({ id: req.user.id, email: req.user.email, role: req.user.role });
 			} catch (err) {
 				console.error(err);
 				return res.status(500).json({ message: 'Failed to get user info' });

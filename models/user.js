@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
 		refreshTokenHash: {
 			type: DataTypes.STRING,
 			allowNull: true
+		},
+		role: {
+			type: DataTypes.ENUM('user', 'manager', 'admin'),
+			allowNull: false,
+			defaultValue: 'user'
 		}
 	}, {
 		sequelize,

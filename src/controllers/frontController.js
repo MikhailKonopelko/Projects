@@ -4,6 +4,7 @@ const express = require('express');
 const createAuthCommands = require('../commands/authCommands');
 const createProjectCommands = require('../commands/projectCommands');
 const createProgrammerCommands = require('../commands/programmerCommands');
+const createUserCommands = require('../commands/userCommands');
 const { verifyAccessToken } = require('../middleware/auth');
 
 /**
@@ -15,6 +16,7 @@ module.exports = function createFrontController() {
 	const auth = createAuthCommands();
 	const project = createProjectCommands();
 	const programmer = createProgrammerCommands();
+	const user = createUserCommands();
 
 	// Auth routes
 	router.post('/auth/register', auth.register);
@@ -36,6 +38,12 @@ module.exports = function createFrontController() {
 	router.post('/programmers', verifyAccessToken, programmer.create);
 	router.put('/programmers/:id', verifyAccessToken, programmer.update);
 	router.delete('/programmers/:id', verifyAccessToken, programmer.remove);
+
+	// Users management (Admin only)
+	router.get('/users', verifyAccessToken, user.list);
+	router.get('/users/:id', verifyAccessToken, user.getById);
+	router.post('/users', verifyAccessToken, user.create);
+	router.delete('/users/:id', verifyAccessToken, user.remove);
 
 	return router;
 };
