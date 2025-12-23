@@ -13,11 +13,6 @@ class ServiceLocator {
     this._models = null;
   }
 
-  /**
-   * Initialize the Service Locator with Sequelize models
-   * This should be called once at application startup
-   * @param {Object} models - Sequelize models object (from models/index.js)
-   */
   initialize(models) {
     if (!models) {
       throw new Error('Models object is required for ServiceLocator initialization');
@@ -28,10 +23,6 @@ class ServiceLocator {
     this._services = {};
   }
 
-  /**
-   * Gets or creates the ProjectRepository instance
-   * @returns {IProjectRepository} ProjectRepository instance
-   */
   getProjectRepository() {
     if (!this._models) {
       throw new Error('ServiceLocator must be initialized with models first');
@@ -44,10 +35,6 @@ class ServiceLocator {
     return this._repositories.projectRepository;
   }
 
-  /**
-   * Gets or creates the ProgrammerRepository instance
-   * @returns {IProgrammerRepository} ProgrammerRepository instance
-   */
   getProgrammerRepository() {
     if (!this._models) {
       throw new Error('ServiceLocator must be initialized with models first');
@@ -60,10 +47,6 @@ class ServiceLocator {
     return this._repositories.programmerRepository;
   }
 
-  /**
-   * Gets or creates the ProjectService instance
-   * @returns {IProjectService} ProjectService instance
-   */
   getProjectService() {
     if (!this._services.projectService) {
       const projectRepository = this.getProjectRepository();
@@ -74,10 +57,6 @@ class ServiceLocator {
     return this._services.projectService;
   }
 
-  /**
-   * Gets or creates the CalculationService instance
-   * @returns {ICalculationService} CalculationService instance
-   */
   getCalculationService() {
     if (!this._services.calculationService) {
       const programmerRepository = this.getProgrammerRepository();
@@ -87,11 +66,6 @@ class ServiceLocator {
     return this._services.calculationService;
   }
 
-  /**
-   * Gets or creates the DataProcessingService instance
-   * This is the main service that combines all functionality
-   * @returns {IDataProcessingService} DataProcessingService instance
-   */
   getDataProcessingService() {
     if (!this._services.dataProcessingService) {
       const projectRepository = this.getProjectRepository();
@@ -105,20 +79,11 @@ class ServiceLocator {
     return this._services.dataProcessingService;
   }
 
-  /**
-   * Clears all cached services and repositories
-   * Useful for testing or reinitialization
-   */
   clear() {
     this._repositories = {};
     this._services = {};
   }
 
-  /**
-   * Gets a service by name (alternative access method)
-   * @param {string} serviceName - Name of the service ('project', 'calculation', 'dataProcessing')
-   * @returns {Object} Service instance
-   */
   get(serviceName) {
     const serviceMap = {
       'project': () => this.getProjectService(),

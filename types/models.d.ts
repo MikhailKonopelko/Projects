@@ -1,6 +1,3 @@
-/**
- * Type definitions for data models
- */
 
 export interface IProject {
   id: number;

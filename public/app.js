@@ -7,14 +7,12 @@ const userStatus = document.getElementById('userStatus');
 const emailEl = document.getElementById('email');
 const passwordEl = document.getElementById('password');
 
-// Modal elements
 const modalOverlay = document.getElementById('modalOverlay');
 const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
 const modalCancel = document.getElementById('modalCancel');
 const modalConfirm = document.getElementById('modalConfirm');
 
-// Project form elements
 const pNameEl = document.getElementById('pName');
 const pClientEl = document.getElementById('pClient');
 const pStartEl = document.getElementById('pStart');
@@ -22,7 +20,6 @@ const pEndEl = document.getElementById('pEnd');
 const createProjectBtn = document.getElementById('createProjectBtn');
 const projectFormMsg = document.getElementById('projectFormMsg');
 
-// Programmer form elements
 const prProjectEl = document.getElementById('prProject');
 const prFirstEl = document.getElementById('prFirst');
 const prLastEl = document.getElementById('prLast');
@@ -35,7 +32,6 @@ const prFullEl = document.getElementById('prFull');
 const createProgrammerBtn = document.getElementById('createProgrammerBtn');
 const programmerFormMsg = document.getElementById('programmerFormMsg');
 
-// KPI elements
 const kpiBar = document.getElementById('kpiBar');
 const kpiProjects = document.getElementById('kpiProjects');
 const kpiProgrammers = document.getElementById('kpiProgrammers');
@@ -60,7 +56,6 @@ async function api(path, options = {}) {
 		...options
 	});
 	
-	// If we get 401, try to refresh the token (but only once)
 	if (resp.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register' && !isRefreshing) {
 		isRefreshing = true;
 		try {
@@ -76,10 +71,8 @@ async function api(path, options = {}) {
 				accessToken = refreshData.accessToken;
 				renderAccessToken();
 				isRefreshing = false;
-				// Retry the original request with new token
 				return api(path, options);
 			} else {
-				// Refresh failed, user is not authenticated
 				accessToken = null;
 				currentUser = null;
 				updateUserStatus();
@@ -87,7 +80,6 @@ async function api(path, options = {}) {
 				isRefreshing = false;
 			}
 		} catch (e) {
-			// Refresh failed, user is not authenticated
 			accessToken = null;
 			currentUser = null;
 			updateUserStatus();
@@ -121,7 +113,6 @@ function updateUIForRole() {
 	const isManagerOrAdmin = currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin');
 	const isAdmin = currentUser && currentUser.role === 'admin';
 	
-	// Show/hide create forms based on role
 	const createProjectSection = document.getElementById('createProjectSection');
 	const createProgrammerSection = document.getElementById('createProgrammerSection');
 	const userManagementSection = document.getElementById('userManagementSection');
@@ -136,7 +127,6 @@ function updateUIForRole() {
 		userManagementSection.style.display = isAdmin ? 'block' : 'none';
 	}
 	
-	// Re-render projects to update delete buttons visibility
 	if (cache.projects && cache.programmers) {
 		renderProjects(cache.projects, cache.programmers);
 	}
@@ -154,20 +144,17 @@ function escapeHtml(text) {
 	return div.innerHTML;
 }
 
-// Modal confirmation function
 let modalResolve = null;
 let modalHandlers = [];
 
 function showModal(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
 	return new Promise((resolve) => {
-		// If there's a pending modal, resolve it first
 		if (modalResolve) {
 			modalResolve(false);
 		}
 		
 		modalResolve = resolve;
 		
-		// Clear previous handlers
 		modalHandlers.forEach(({ element, event, handler }) => {
 			element.removeEventListener(event, handler);
 		});
@@ -178,17 +165,14 @@ function showModal(title, message, confirmText = 'Confirm', cancelText = 'Cancel
 		modalConfirm.textContent = confirmText;
 		modalCancel.textContent = cancelText;
 		
-		// Show cancel button only if cancelText is provided
 		if (cancelText) {
 			modalCancel.style.display = '';
 		} else {
 			modalCancel.style.display = 'none';
 		}
 		
-		// Show modal
 		modalOverlay.classList.add('active');
 		
-		// Add event handlers
 		const confirmHandler = () => {
 			modalOverlay.classList.remove('active');
 			if (modalResolve) {
@@ -233,7 +217,6 @@ function showModal(title, message, confirmText = 'Confirm', cancelText = 'Cancel
 	});
 }
 
-// Business-calculation helpers (client-side mirror)
 function computeWorkdaysInclusive(start, end) {
 	const s = new Date(start);
 	const e = new Date(end);
@@ -241,7 +224,6 @@ function computeWorkdaysInclusive(start, end) {
 	let days = 0;
 	for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
 		const day = d.getDay();
-		// Weekdays only to mirror service
 		if (day !== 0 && day !== 6) days++;
 	}
 	return days;
@@ -251,7 +233,6 @@ function computeSalary(dev) {
 	const hoursPerDay = dev.fullTime ? 8 : 4;
 	const workDays = computeWorkdaysInclusive(dev.startDate, dev.endDate);
 	const base = workDays * hoursPerDay * (Number(dev.hourlyRate) || 0);
-	// Mirror CalculationService: multiply by 1.77 and round
 	return Math.round(base * 1.77);
 }
 
@@ -341,7 +322,6 @@ function renderProjects(projects, programmers) {
 
 async function checkAuthStatus() {
 	try {
-		// Try to get current user info (works with cookies even if accessToken is null)
 		const user = await fetch('/api/auth/me', {
 			credentials: 'include',
 			method: 'GET',
@@ -355,7 +335,6 @@ async function checkAuthStatus() {
 			const userData = await user.json();
 			currentUser = userData;
 			updateUserStatus();
-			// Try to get the access token from the response or refresh
 			if (!accessToken) {
 				try {
 					const refreshResp = await fetch('/api/auth/refresh', {
@@ -370,15 +349,12 @@ async function checkAuthStatus() {
 						renderAccessToken();
 					}
 				} catch (e) {
-					// Token refresh failed, but user is still authenticated via cookies
 				}
 			}
 		} else {
-			// Not authenticated, try refresh
 			throw new Error('Not authenticated');
 		}
 	} catch (e) {
-		// If that fails, try to refresh the token
 		try {
 			const refreshResp = await fetch('/api/auth/refresh', {
 				credentials: 'include',
@@ -391,7 +367,6 @@ async function checkAuthStatus() {
 				const refreshData = await refreshResp.json();
 				accessToken = refreshData.accessToken;
 				renderAccessToken();
-				// Try again to get user info
 				const userResp = await fetch('/api/auth/me', {
 					credentials: 'include',
 					method: 'GET',
@@ -487,7 +462,6 @@ document.getElementById('loadProjectsBtn').addEventListener('click', async () =>
 	}
 });
 
-// Create Project handler
 createProjectBtn.addEventListener('click', async () => {
 	try {
 		projectFormMsg.textContent = '';
@@ -511,7 +485,6 @@ createProjectBtn.addEventListener('click', async () => {
 		}) });
 		projectFormMsg.textContent = 'Project created.';
 		projectFormMsg.className = 'small success';
-		// Clear
 		pNameEl.value = '';
 		pClientEl.value = '';
 		pStartEl.value = '';
@@ -525,7 +498,6 @@ createProjectBtn.addEventListener('click', async () => {
 	}
 });
 
-// Create Programmer handler
 createProgrammerBtn.addEventListener('click', async () => {
 	try {
 		programmerFormMsg.textContent = '';
@@ -555,7 +527,6 @@ createProgrammerBtn.addEventListener('click', async () => {
 		}) });
 		programmerFormMsg.textContent = 'Programmer added.';
 		programmerFormMsg.className = 'small success';
-		// Clear
 		prFirstEl.value = '';
 		prLastEl.value = '';
 		prMiddleEl.value = '';
@@ -590,17 +561,14 @@ function populateProjectSelect(projects) {
 	prProjectEl.innerHTML = opts.join('');
 }
 
-// Event delegation for DELETE actions
 projectsView.addEventListener('click', async (e) => {
 	const target = e.target;
 	if (!(target instanceof HTMLElement)) return;
 
-	// Delete project
 	if (target.classList.contains('btn-del-project')) {
 		const id = Number(target.getAttribute('data-id'));
 		if (!id) return;
 		
-		// Find project name for better confirmation message
 		const project = cache.projects?.find(p => p.id === id);
 		const projectName = project?.name || 'this project';
 		const confirmMsg = `Are you sure you want to delete "${projectName}"? All programmers assigned to this project will also be removed.`;
@@ -626,12 +594,10 @@ projectsView.addEventListener('click', async (e) => {
 		return;
 	}
 
-	// Delete programmer
 	if (target.classList.contains('btn-del-prog')) {
 		const id = Number(target.getAttribute('data-id'));
 		if (!id) return;
 		
-		// Find programmer info for better confirmation message
 		const programmer = cache.programmers?.find(p => p.id === id);
 		const programmerName = programmer 
 			? `${programmer.firstName || ''} ${programmer.lastName || ''}`.trim() || 'this programmer'
@@ -659,7 +625,6 @@ projectsView.addEventListener('click', async (e) => {
 	}
 });
 
-// User management functions (Admin only)
 function renderUsers(users) {
 	const usersView = document.getElementById('usersView');
 	if (!usersView) return;
@@ -710,7 +675,6 @@ async function loadUsers() {
 	}
 }
 
-// User management event handlers
 const uEmailEl = document.getElementById('uEmail');
 const uPasswordEl = document.getElementById('uPassword');
 const createUserBtn = document.getElementById('createUserBtn');
@@ -754,7 +718,6 @@ if (loadUsersBtn) {
 	});
 }
 
-// Event delegation for user deletion
 const usersView = document.getElementById('usersView');
 if (usersView) {
 	usersView.addEventListener('click', async (e) => {
@@ -765,7 +728,6 @@ if (usersView) {
 			const id = Number(target.getAttribute('data-id'));
 			if (!id) return;
 			
-			// Find user email for better confirmation message
 			const userCard = target.closest('[data-user-id]');
 			const userEmail = userCard?.querySelector('h3')?.textContent || 'this user';
 			
@@ -792,7 +754,6 @@ if (usersView) {
 	});
 }
 
-// Check auth status on page load
 renderAccessToken();
 checkAuthStatus().then(() => {
 	reloadAll();

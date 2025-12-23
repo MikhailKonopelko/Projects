@@ -1,7 +1,3 @@
-/**
- * Identity Map pattern implementation for request-scoped caching
- * Caches entities by key to avoid duplicate queries within a single workflow
- */
 class IdentityMap {
   constructor() {
     this._store = new Map();
@@ -24,12 +20,6 @@ class IdentityMap {
     return this._store.has(this._makeKey(namespace, id));
   }
 
-  /**
-   * Get or compute-and-cache a value
-   * @param {string} namespace
-   * @param {string|number} id
-   * @param {() => Promise<any>} loader
-   */
   async getOrLoad(namespace, id, loader) {
     const key = this._makeKey(namespace, id);
     if (this._store.has(key)) return this._store.get(key);

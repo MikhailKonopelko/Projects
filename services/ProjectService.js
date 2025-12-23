@@ -1,13 +1,4 @@
-/**
- * Service implementation for project-related data operations
- * Implements IProjectService interface
- * Uses dependency injection for data access layer
- */
 class ProjectService {
-  /**
-   * @param {IProjectRepository} projectRepository - Project repository for data access
-   * @param {IProgrammerRepository} programmerRepository - Programmer repository for data access
-   */
   constructor(projectRepository, programmerRepository) {
     if (!projectRepository) {
       throw new Error('projectRepository is required');
@@ -23,10 +14,6 @@ class ProjectService {
     this._IdentityMap = null;
   }
 
-  /**
-   * Retrieves all projects from the database
-   * @returns {Promise<IProject[]>} Promise resolving to an array of projects
-   */
   async getAllProjects() {
     const sequelize = this.projectRepository.Project.sequelize;
     const { withTransaction } = this._getTxHelper();
@@ -38,11 +25,6 @@ class ProjectService {
     });
   }
 
-  /**
-   * Retrieves all programmers assigned to a specific project
-   * @param {number} projectId - The ID of the project
-   * @returns {Promise<IProgrammer[]>} Promise resolving to an array of programmers
-   */
   async getProgrammersByProject(projectId) {
     const sequelize = this.programmerRepository.Programmer.sequelize;
     const { withTransaction } = this._getTxHelper();
@@ -54,10 +36,6 @@ class ProjectService {
     });
   }
 
-  /**
-   * Returns a project with a lazy-loading programmers property
-   * Demonstrates Lazy Load pattern for associated entities
-   */
   async getProjectWithLazyProgrammers(projectId) {
     const sequelize = this.projectRepository.Project.sequelize;
     const { withTransaction } = this._getTxHelper();

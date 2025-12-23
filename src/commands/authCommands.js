@@ -18,7 +18,6 @@ module.exports = function createAuthCommands() {
 					return res.status(409).json({ message: 'User already exists' });
 				}
 				const passwordHash = await bcrypt.hash(password, 10);
-				// Регистрация создает только обычных пользователей
 				const created = await User.create({ email, passwordHash, role: 'user' });
 				return res.status(201).json({ id: created.id, email: created.email, role: created.role });
 			} catch (err) {
@@ -78,10 +77,8 @@ module.exports = function createAuthCommands() {
 
 		logout: async (req, res) => {
 			try {
-				// Try to get user from access token if available
 				let userId = req.user?.id || null;
 				
-				// If no user from access token, try to get from refresh token
 				if (!userId) {
 					const { refreshToken: tokenFromBody } = req.body || {};
 					const token = tokenFromBody || req.cookies?.refreshToken;
@@ -90,17 +87,14 @@ module.exports = function createAuthCommands() {
 							const payload = verifyRefreshToken(token);
 							userId = payload.sub;
 						} catch (e) {
-							// Refresh token is invalid/expired, ignore
 						}
 					}
 				}
 				
-				// Clear refresh token from database if we have a user ID
 				if (userId) {
 					await User.update({ refreshTokenHash: null }, { where: { id: userId } });
 				}
 			} catch (e) {
-				// ignore errors, still clear cookies
 			} finally {
 				clearAuthCookies(res);
 				return res.status(200).json({ message: 'Logged out' });

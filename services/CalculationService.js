@@ -1,12 +1,4 @@
-/**
- * Service implementation for calculation-related operations
- * Implements ICalculationService interface
- * Uses dependency injection for data access layer
- */
 class CalculationService {
-  /**
-   * @param {IProgrammerRepository} programmerRepository - Programmer repository for data access
-   */
   constructor(programmerRepository) {
     if (!programmerRepository) {
       throw new Error('programmerRepository is required');
@@ -17,11 +9,6 @@ class CalculationService {
     this._IdentityMap = null;
   }
 
-  /**
-   * Calculates the total cost of a project based on programmer hourly rates and work hours
-   * @param {number} projectId - The ID of the project
-   * @returns {Promise<number>} Promise resolving to the total project cost
-   */
   async calculateProjectCost(projectId) {
     const sequelize = this.programmerRepository.Programmer.sequelize;
     const { withTransaction } = this._getTxHelper();
@@ -41,11 +28,6 @@ class CalculationService {
     return totalCost;
   }
 
-  /**
-   * Calculates the salary for a programmer based on work period and hourly rate
-   * @param {IProgrammer} programmer - The programmer object
-   * @returns {number} The calculated salary (with taxes)
-   */
   calculateSalary(programmer) {
     const start = new Date(programmer.startDate);
     const end = new Date(programmer.endDate);
@@ -58,14 +40,9 @@ class CalculationService {
 
     const hoursPerDay = programmer.fullTime ? 8 : 4;
     const base = workDays * hoursPerDay * programmer.hourlyRate;
-    return Math.round(base * 1.77); // с налогами
+    return Math.round(base * 1.77);
   }
 
-  /**
-   * Calculates the total project value based on all programmer salaries
-   * @param {number} projectId - The ID of the project
-   * @returns {Promise<number>} Promise resolving to the total project value
-   */
   async calculateProjectValue(projectId) {
     const sequelize = this.programmerRepository.Programmer.sequelize;
     const { withTransaction } = this._getTxHelper();
@@ -98,4 +75,3 @@ class CalculationService {
 }
 
 module.exports = CalculationService;
-
