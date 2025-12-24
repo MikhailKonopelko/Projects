@@ -1,9 +1,6 @@
-'use strict';
-
-const jwt = require('jsonwebtoken');
-const { User } = require('../../models');
-
-async function verifyAccessToken(req, res, next) {
+import jwt from 'jsonwebtoken';
+import db from '../../models/index.js'; const { User } = db;
+export async function verifyAccessToken(req, res, next) {
 	const authHeader = req.headers.authorization || '';
 	const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 	const token = tokenFromHeader || req.cookies?.accessToken;
@@ -19,7 +16,7 @@ async function verifyAccessToken(req, res, next) {
 	}
 }
 
-function requireRole(...allowedRoles) {
+export function requireRole(...allowedRoles) {
 	return (req, res, next) => {
 		if (!req.user) {
 			return res.status(401).json({ message: 'Authentication required' });
@@ -31,19 +28,12 @@ function requireRole(...allowedRoles) {
 	};
 }
 
-function requireManagerOrAdmin(req, res, next) {
+export function requireManagerOrAdmin(req, res, next) {
 	return requireRole('manager', 'admin')(req, res, next);
 }
 
-function requireAdmin(req, res, next) {
+export function requireAdmin(req, res, next) {
 	return requireRole('admin')(req, res, next);
 }
-
-module.exports = { 
-	verifyAccessToken, 
-	requireRole, 
-	requireManagerOrAdmin, 
-	requireAdmin 
-};
 
 

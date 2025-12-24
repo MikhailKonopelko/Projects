@@ -1,13 +1,10 @@
-'use strict';
+import bcrypt from 'bcryptjs';
+import { Op } from 'sequelize';
+import db from '../../models/index.js'; const { User } = db;
 
-const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
-const { User } = require('../../models');
-
-module.exports = function createUserCommands() {
+export default function createUserCommands() {
 	return {
 		list: async (req, res) => {
-			// Только админ может просматривать список пользователей
 			if (req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only admins can view users' });
 			}
@@ -18,7 +15,6 @@ module.exports = function createUserCommands() {
 			return res.json(users);
 		},
 		getById: async (req, res) => {
-			// Только админ может просматривать пользователя
 			if (req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only admins can view users' });
 			}
@@ -29,7 +25,6 @@ module.exports = function createUserCommands() {
 			return res.json(user);
 		},
 		create: async (req, res) => {
-			// Только админ может создавать пользователей
 			if (req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only admins can create users' });
 			}
@@ -38,7 +33,6 @@ module.exports = function createUserCommands() {
 				if (!email || !password) {
 					return res.status(400).json({ message: 'Email and password are required' });
 				}
-				// Админ может создавать только обычных пользователей
 				if (role !== 'user') {
 					return res.status(400).json({ message: 'Only regular users can be created' });
 				}
@@ -55,18 +49,15 @@ module.exports = function createUserCommands() {
 			}
 		},
 		remove: async (req, res) => {
-			// Только админ может удалять пользователей
 			if (req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only admins can delete users' });
 			}
 			const userId = parseInt(req.params.id);
-			// Нельзя удалить себя
 			if (userId === req.user.id) {
 				return res.status(400).json({ message: 'Cannot delete yourself' });
 			}
 			const user = await User.findByPk(userId);
 			if (!user) return res.status(404).json({ message: 'Not found' });
-			// Нельзя удалить менеджера или админа
 			if (user.role === 'manager' || user.role === 'admin') {
 				return res.status(400).json({ message: 'Cannot delete manager or admin users' });
 			}
@@ -74,5 +65,5 @@ module.exports = function createUserCommands() {
 			return res.status(204).send();
 		}
 	};
-};
+}
 

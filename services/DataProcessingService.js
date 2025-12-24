@@ -1,7 +1,7 @@
-const ProjectService = require('./ProjectService');
-const CalculationService = require('./CalculationService');
+import ProjectService from './ProjectService.js';
+import CalculationService from './CalculationService.js';
 
-class DataProcessingService extends ProjectService {
+export default class DataProcessingService extends ProjectService {
   constructor(projectRepository, programmerRepository) {
     super(projectRepository, programmerRepository);
     this.calculationService = new CalculationService(programmerRepository);
@@ -19,6 +19,4 @@ class DataProcessingService extends ProjectService {
     return this.calculationService.calculateProjectValue(projectId);
   }
 }
-
-module.exports = DataProcessingService;
 

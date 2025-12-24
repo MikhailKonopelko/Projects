@@ -1,4 +1,4 @@
-class IdentityMap {
+export default class IdentityMap {
   constructor() {
     this._store = new Map();
   }
@@ -28,7 +28,5 @@ class IdentityMap {
     return value;
   }
 }
-
-module.exports = IdentityMap;
 
 

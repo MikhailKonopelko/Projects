@@ -1,13 +1,11 @@
-'use strict';
+import express from 'express';
+import createAuthCommands from '../commands/authCommands.js';
+import createProjectCommands from '../commands/projectCommands.js';
+import createProgrammerCommands from '../commands/programmerCommands.js';
+import createUserCommands from '../commands/userCommands.js';
+import { verifyAccessToken } from '../middleware/auth.js';
 
-const express = require('express');
-const createAuthCommands = require('../commands/authCommands');
-const createProjectCommands = require('../commands/projectCommands');
-const createProgrammerCommands = require('../commands/programmerCommands');
-const createUserCommands = require('../commands/userCommands');
-const { verifyAccessToken } = require('../middleware/auth');
-
-module.exports = function createFrontController() {
+export default function createFrontController() {
 	const router = express.Router();
 
 	const auth = createAuthCommands();

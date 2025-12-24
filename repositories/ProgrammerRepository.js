@@ -1,7 +1,5 @@
-class ProgrammerRepository {
-  /**
-   * @param {Model} ProgrammerModel - Sequelize Programmer model
-   */
+export default class ProgrammerRepository {
+  
   constructor(ProgrammerModel) {
     if (!ProgrammerModel) {
       throw new Error('ProgrammerModel is required');
@@ -45,5 +43,3 @@ class ProgrammerRepository {
     return programmer;
   }
 }
-
-module.exports = ProgrammerRepository;

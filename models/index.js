@@ -1,12 +1,16 @@
-'use strict';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import Sequelize from 'sequelize';
+import configJson from '../config/config.json' with { type: 'json' };
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
-const basename = path.basename(__filename);
+import initProject from './project.js';
+import initProgrammer from './programmer.js';
+import initUser from './user.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = configJson[env];
 const db = {};
 
 let sequelize;
@@ -16,20 +20,9 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+db.Project = initProject(sequelize, Sequelize.DataTypes);
+db.Programmer = initProgrammer(sequelize, Sequelize.DataTypes);
+db.User = initUser(sequelize, Sequelize.DataTypes);
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
@@ -37,8 +30,7 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export default db;

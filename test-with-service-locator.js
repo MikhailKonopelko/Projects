@@ -2,15 +2,12 @@ const { sequelize } = require('./models');
 const models = require('./models');
 const serviceLocator = require('./ServiceLocator');
 
-/**
- * Comprehensive test demonstrating Service Locator pattern usage
- */
+
 async function run() {
   try {
     await sequelize.authenticate();
     console.log('✅ Connected to database\n');
 
-    // Initialize Service Locator (must be done once at application startup)
     serviceLocator.initialize(models);
     console.log('✅ Service Locator initialized\n');
 
@@ -117,6 +114,9 @@ async function run() {
 }
 
 run();
+
+
+
 
 
 

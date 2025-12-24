@@ -1,20 +1,18 @@
-'use strict';
+import jwt from 'jsonwebtoken';
 
-const jwt = require('jsonwebtoken');
-
-function generateAccessToken(payload) {
+export function generateAccessToken(payload) {
 	return jwt.sign(payload, process.env.JWT_ACCESS_SECRET || 'dev_access_secret', { expiresIn: '15m' });
 }
 
-function generateRefreshToken(payload) {
+export function generateRefreshToken(payload) {
 	return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret', { expiresIn: '7d' });
 }
 
-function verifyRefreshToken(token) {
+export function verifyRefreshToken(token) {
 	return jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret');
 }
 
-function setAuthCookies(res, accessToken, refreshToken) {
+export function setAuthCookies(res, accessToken, refreshToken) {
 	const isProd = process.env.NODE_ENV === 'production';
 	res.cookie('accessToken', accessToken, {
 		httpOnly: true,
@@ -30,18 +28,10 @@ function setAuthCookies(res, accessToken, refreshToken) {
 	});
 }
 
-function clearAuthCookies(res) {
+export function clearAuthCookies(res) {
 	const isProd = process.env.NODE_ENV === 'production';
 	res.clearCookie('accessToken', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' });
 	res.clearCookie('refreshToken', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' });
 }
-
-module.exports = {
-	generateAccessToken,
-	generateRefreshToken,
-	verifyRefreshToken,
-	setAuthCookies,
-	clearAuthCookies
-};
 
 

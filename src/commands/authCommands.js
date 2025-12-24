@@ -1,11 +1,11 @@
-'use strict';
+import bcrypt from 'bcryptjs';
+import { Op } from 'sequelize';
+import db from '../../models/index.js';
+const { User } = db;
 
-const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
-const { User } = require('../../models');
-const { generateAccessToken, generateRefreshToken, setAuthCookies, clearAuthCookies, verifyRefreshToken } = require('../utils/jwt');
+import { generateAccessToken, generateRefreshToken, setAuthCookies, clearAuthCookies, verifyRefreshToken } from '../utils/jwt.js';
 
-module.exports = function createAuthCommands() {
+export default function createAuthCommands() {
 	return {
 		register: async (req, res) => {
 			try {

@@ -1,5 +1,4 @@
-
-async function withTransaction(sequelize, work) {
+export async function withTransaction(sequelize, work) {
   const transaction = await sequelize.transaction();
   try {
     const result = await work({ transaction });
@@ -13,7 +12,5 @@ async function withTransaction(sequelize, work) {
     throw error;
   }
 }
-
-module.exports = { withTransaction };
 
 

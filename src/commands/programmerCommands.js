@@ -1,22 +1,17 @@
-'use strict';
+import db from '../../models/index.js'; const { Programmer, Project } = db;
 
-const { Programmer, Project } = require('../../models');
-
-module.exports = function createProgrammerCommands() {
+export default function createProgrammerCommands() {
 	return {
 		list: async (_req, res) => {
-			// Все авторизованные пользователи могут просматривать программистов
 			const items = await Programmer.findAll();
 			return res.json(items);
 		},
 		getById: async (req, res) => {
-			// Все авторизованные пользователи могут просматривать программистов
 			const item = await Programmer.findByPk(req.params.id);
 			if (!item) return res.status(404).json({ message: 'Not found' });
 			return res.json(item);
 		},
 		create: async (req, res) => {
-			// Только менеджер и админ могут создавать программистов
 			if (req.user.role !== 'manager' && req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only managers and admins can create programmers' });
 			}
@@ -30,7 +25,6 @@ module.exports = function createProgrammerCommands() {
 			}
 		},
 		update: async (req, res) => {
-			// Только менеджер и админ могут обновлять программистов
 			if (req.user.role !== 'manager' && req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only managers and admins can update programmers' });
 			}
@@ -44,7 +38,6 @@ module.exports = function createProgrammerCommands() {
 			}
 		},
 		remove: async (req, res) => {
-			// Только менеджер и админ могут удалять программистов
 			if (req.user.role !== 'manager' && req.user.role !== 'admin') {
 				return res.status(403).json({ message: 'Only managers and admins can delete programmers' });
 			}
@@ -54,6 +47,6 @@ module.exports = function createProgrammerCommands() {
 			return res.status(204).send();
 		}
 	};
-};
+}
 
 

@@ -1,6 +1,5 @@
 'use strict';
 
-const accessTokenView = document.getElementById('accessTokenView');
 const projectsView = document.getElementById('projectsView');
 const userStatusText = document.getElementById('userStatusText');
 const userStatus = document.getElementById('userStatus');
@@ -69,21 +68,18 @@ async function api(path, options = {}) {
 			if (refreshResp.ok) {
 				const refreshData = await refreshResp.json();
 				accessToken = refreshData.accessToken;
-				renderAccessToken();
 				isRefreshing = false;
 				return api(path, options);
 			} else {
 				accessToken = null;
 				currentUser = null;
 				updateUserStatus();
-				renderAccessToken();
 				isRefreshing = false;
 			}
 		} catch (e) {
 			accessToken = null;
 			currentUser = null;
 			updateUserStatus();
-			renderAccessToken();
 			isRefreshing = false;
 		}
 	}
@@ -93,10 +89,6 @@ async function api(path, options = {}) {
 		throw new Error(text || resp.statusText);
 	}
 	return resp.json().catch(() => ({}));
-}
-
-function renderAccessToken() {
-	accessTokenView.textContent = accessToken ? accessToken : '(none)';
 }
 
 function updateUserStatus() {
@@ -346,7 +338,6 @@ async function checkAuthStatus() {
 					if (refreshResp.ok) {
 						const refreshData = await refreshResp.json();
 						accessToken = refreshData.accessToken;
-						renderAccessToken();
 					}
 				} catch (e) {
 				}
@@ -366,7 +357,6 @@ async function checkAuthStatus() {
 			if (refreshResp.ok) {
 				const refreshData = await refreshResp.json();
 				accessToken = refreshData.accessToken;
-				renderAccessToken();
 				const userResp = await fetch('/api/auth/me', {
 					credentials: 'include',
 					method: 'GET',
@@ -390,7 +380,6 @@ async function checkAuthStatus() {
 			accessToken = null;
 			currentUser = null;
 			updateUserStatus();
-			renderAccessToken();
 		}
 	}
 }
@@ -416,7 +405,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 		const password = passwordEl.value;
 		const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 		accessToken = data.accessToken;
-		renderAccessToken();
 		// Get user info after login
 		await checkAuthStatus();
 		await reloadAll();
@@ -432,7 +420,6 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
 	try {
 		const data = await api('/auth/refresh', { method: 'POST', body: JSON.stringify({}) });
 		accessToken = data.accessToken;
-		renderAccessToken();
 		await checkAuthStatus();
 		await reloadAll();
 	} catch (e) {
@@ -446,7 +433,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 		accessToken = null;
 		currentUser = null;
 		updateUserStatus();
-		renderAccessToken();
 		projectsView.innerHTML = '';
 		kpiBar.style.display = 'none';
 	} catch (e) {
@@ -754,7 +740,6 @@ if (usersView) {
 	});
 }
 
-renderAccessToken();
 checkAuthStatus().then(() => {
 	reloadAll();
 	if (currentUser && currentUser.role === 'admin') {

@@ -1,8 +1,5 @@
-
-class ProjectRepository {
-  /**
-   * @param {Model} ProjectModel - Sequelize Project model
-   */
+export default class ProjectRepository {
+  
   constructor(ProjectModel) {
     if (!ProjectModel) {
       throw new Error('ProjectModel is required');
@@ -58,5 +55,3 @@ class ProjectRepository {
     return proxy;
   }
 }
-
-module.exports = ProjectRepository;

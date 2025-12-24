@@ -1,8 +1,8 @@
-const ProjectRepository = require('./repositories/ProjectRepository');
-const ProgrammerRepository = require('./repositories/ProgrammerRepository');
-const ProjectService = require('./services/ProjectService');
-const CalculationService = require('./services/CalculationService');
-const DataProcessingService = require('./services/DataProcessingService');
+import ProjectRepository from './repositories/ProjectRepository.js';
+import ProgrammerRepository from './repositories/ProgrammerRepository.js';
+import ProjectService from './services/ProjectService.js';
+import CalculationService from './services/CalculationService.js';
+import DataProcessingService from './services/DataProcessingService.js';
 
 class ServiceLocator {
   constructor() {
@@ -102,8 +102,9 @@ class ServiceLocator {
   }
 }
 
-// Export singleton instance
-module.exports = new ServiceLocator();
+export default new ServiceLocator();
+
+
 
 
 

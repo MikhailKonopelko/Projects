@@ -1,13 +1,14 @@
-'use strict';
+import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import models from './models/index.js';
+import createFrontController from './src/controllers/frontController.js';
 
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-
-const { sequelize } = require('./models');
-const createFrontController = require('./src/controllers/frontController');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -19,22 +20,19 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Static client
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API - Front Controller
 app.use('/api', createFrontController());
 
-// Healthcheck
 app.get('/health', (_req, res) => {
 	res.json({ status: 'ok' });
 });
 
 async function start() {
 	try {
-		await sequelize.authenticate();
+		await models.sequelize.authenticate();
 		console.log('DB connection established.');
-		await sequelize.sync(); // optional: ensure models are in sync
+		await models.sequelize.sync(); // optional: ensure models are in sync
 		app.listen(PORT, () => {
 			console.log(`Server listening on http://localhost:${PORT}`);
 		});
